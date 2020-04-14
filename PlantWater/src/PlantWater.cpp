@@ -2,33 +2,71 @@
 //       THIS IS A GENERATED FILE - DO NOT EDIT       //
 /******************************************************/
 
-#include "Particle.h"
-#line 1 "c:/Users/iotpa/Documents/jarvis/PlantWater/src/PlantWater.ino"
+#line 1 "c:/Users/IoTPa/Documents/jarvis/PlantWater/src/PlantWater.ino"
 /*
  * Project PlantWater
  * Description:
  * Author:
  * Date:
  */
+#include <Particle.h>
+#include <JsonParserGeneratorRK.h>
+
 
 void setup();
 void loop();
-#line 8 "c:/Users/iotpa/Documents/jarvis/PlantWater/src/PlantWater.ino"
+void printMoist(int moistVal);
+void createEventPayLoad(int moistValue, int tempValue);
+#line 11 "c:/Users/IoTPa/Documents/jarvis/PlantWater/src/PlantWater.ino"
 int soilPin = A2;
 int moist;
 int soilDelay = 10000;
 
-// setup() runs once, when the device is first turned on.
+int tempPin = A3;
+int temp;
+
+char currentTime[25];
+char current[9];
+String t;
+String t2;
+
 void setup() {
-  // Put initialization like pinMode and begin functions here.
-Serial.begin(9600);
-pinMode(soilPin,INPUT);
+  Serial.begin(9600);
+  pinMode(soilPin,INPUT);
+  Time.zone(-6); // set timezone to MDT
+  Particle.syncTime(); 
+  Particle.variable("Moisture", moist);
+  Particle.variable("Temperature", temp);
 }
 
-// loop() runs over and over again, as quickly as it can execute.
 void loop() {
-  // The core of your code will likely live here.
-moist = analogRead(soilPin);
-Serial.printf("The moisture reading is %i \n",moist);
-delay(soilDelay);
+  moist = analogRead(soilPin);
+  temp = analogRead(tempPin);
+  printMoist(moist);
+  Particle.publish("Moisture", String(moist),PRIVATE);
+  Particle.publish("Temperature", String(temp),PRIVATE);
+  createEventPayLoad(moist,temp);
+  delay(soilDelay);
+}
+
+void printMoist(int moistVal) {
+  t = Time.timeStr(); 
+  t.toCharArray(currentTime,25);
+  t2 = t.substring(11,19);
+  t2.toCharArray(current,9);
+  Serial.println(t2);
+  Serial.printf("At %s the moisture reading is %i \n",currentTime,moist);
+  //Serial.printf("At %s the moisture reading is %i \n",Time.timeStr().c_str(),moist);
+  Serial.printf("The time is %s \n",current);
+}
+
+void createEventPayLoad(int moistValue, int tempValue) {
+  JsonWriterStatic<256> jw;
+  {
+    JsonWriterAutoObject obj(&jw);
+
+    jw.insertKeyValue("Moisture", moistValue);
+    jw.insertKeyValue("Temperature", tempValue);
+  }
+  Particle.publish("env-vals",jw.getBuffer(), PRIVATE);
 }
