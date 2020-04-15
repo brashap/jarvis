@@ -11,9 +11,9 @@ int soilPin = A2;
 int moist;
 int soilDelay = 60000;
 
-int threshold = 3500;
+int threshold = 2700;
 int pumpPin = D4;
-int waterTime = 2500;
+int waterTime = 1500;
 bool watered;
 
 int tempPin = A3;
@@ -28,6 +28,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(soilPin,INPUT);
   pinMode(pumpPin,OUTPUT);
+  digitalWrite(pumpPin,LOW);
   Time.zone(-6); // set timezone to MDT
   Particle.syncTime(); 
   Particle.variable("Moisture", moist);
@@ -51,6 +52,8 @@ void loop() {
 
 bool waterPlant(int moistVal) {
   if(moistVal > threshold) {
+    Serial.printlnf("The %i > %i, turning on pump", moist, threshold);
+    delay(1000);
     digitalWrite(pumpPin,HIGH);
     delay(waterTime);
     digitalWrite(pumpPin,LOW);
@@ -58,6 +61,7 @@ bool waterPlant(int moistVal) {
   }
   else
   {
+    Serial.printlnf("The %i < %i no water needed", moist, threshold);
     return false;
   }
     
