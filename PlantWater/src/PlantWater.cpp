@@ -2,6 +2,7 @@
 //       THIS IS A GENERATED FILE - DO NOT EDIT       //
 /******************************************************/
 
+#include "Particle.h"
 #line 1 "c:/Users/iotpa/Documents/jarvis/PlantWater/src/PlantWater.ino"
 /*
  * Project PlantWater
@@ -9,22 +10,53 @@
  * Author:
  * Date:
  */
-#include <Particle.h>
+//#include <Particle.h>
 #include <JsonParserGeneratorRK.h>
 
+#include <Adafruit_MQTT.h>
+
+// This #include statement was automatically added by the Particle IDE. 
+#include "Adafruit_MQTT/Adafruit_MQTT.h" 
+#include "Adafruit_MQTT/Adafruit_MQTT_SPARK.h" 
+#include "Adafruit_MQTT/Adafruit_MQTT.h" 
+
+/************************* Adafruit.io Setup *********************************/ 
 void setup();
 void loop();
 bool waterPlant(int moistVal);
 void printMoist(int moistVal);
 void createEventPayLoad(int moistValue, int tempValue, bool waterED);
-#line 10 "c:/Users/iotpa/Documents/jarvis/PlantWater/src/PlantWater.ino"
+#line 18 "c:/Users/iotpa/Documents/jarvis/PlantWater/src/PlantWater.ino"
+#define AIO_SERVER      "io.adafruit.com" 
+#define AIO_SERVERPORT  1883                   // use 8883 for SSL 
+#define AIO_USERNAME  "rashap"
+#define AIO_KEY       "598169fa3ba94636941a330976e42e2c"
+
+
+/************ Global State (you don't need to change this!) ***   ***************/ 
+TCPClient TheClient; 
+
+// Setup the MQTT client class by passing in the WiFi client and MQTT server and login details. 
+Adafruit_MQTT_SPARK mqtt(&TheClient,AIO_SERVER,AIO_SERVERPORT,AIO_USERNAME,AIO_KEY); 
+
+
+/****************************** Feeds ***************************************/ 
+// Setup a feed called 'voltage' for publishing. 
+// Notice MQTT paths for AIO follow the form: <username>/feeds/<feedname> 
+
+Adafruit_MQTT_Publish Htemp = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Temperature");
+Adafruit_MQTT_Publish Hmoist = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Moisture");
+Adafruit_MQTT_Publish Hwater = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Water"); 
+
+Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/LED_On"); 
+
 int soilPin = A2;
 int moist;
 int soilDelay = 60000;
 
 int threshold = 2700;
 int pumpPin = D4;
-int waterTime = 1500;
+int waterTime = 500;
 bool watered;
 
 int tempPin = A3;
@@ -35,16 +67,26 @@ char current[9];
 String t;
 String t2;
 
+long time1;
+long time2;
+int button;
+
+int delayStart;
+
 void setup() {
   Serial.begin(9600);
   pinMode(soilPin,INPUT);
   pinMode(pumpPin,OUTPUT);
+  pinMode(D7,OUTPUT);
   digitalWrite(pumpPin,LOW);
   Time.zone(-6); // set timezone to MDT
   Particle.syncTime(); 
   Particle.variable("Moisture", moist);
   Particle.variable("Temperature", temp);
   Particle.variable("Plant Watered", watered);
+
+    // Setup MQTT subscription for onoff feed.
+  mqtt.subscribe(&onoffbutton);
 }
 
 void loop() {
@@ -53,12 +95,28 @@ void loop() {
 
   temp = analogRead(tempPin);
   printMoist(moist);
+
+    if(mqtt.Update()) {
+       Htemp.publish(temp); 
+       Hmoist.publish(moist);
+       Hwater.publish(watered);
+    } 
+
+
   Particle.publish("Moisture", String(moist),PRIVATE);
   Particle.publish("Temperature", String(temp),PRIVATE);
   Particle.publish("Plant Watered", String(watered),PRIVATE);
+  
   createEventPayLoad(moist,temp,watered);
 
-  delay(soilDelay);
+      Adafruit_MQTT_Subscribe *subscription;
+        while ((subscription = mqtt.readSubscription(10000))) {  // do this loop for 10 seconds
+          if (subscription == &onoffbutton) {
+            button = atoi((char *)onoffbutton.lastread);   //convert adafruit string to int
+            Serial.printf("Button State is %i",button);
+            digitalWrite(D7,button);
+          }
+        }
 }
 
 bool waterPlant(int moistVal) {
