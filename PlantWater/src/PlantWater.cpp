@@ -56,7 +56,7 @@ int soilDelay = 60000;
 
 int threshold = 2700;
 int pumpPin = D4;
-int waterTime = 500;
+int waterTime = 1250;
 bool watered;
 
 int tempPin = A3;
@@ -70,6 +70,7 @@ String t2;
 long time1;
 long time2;
 int button;
+int i;
 
 int delayStart;
 
@@ -102,21 +103,30 @@ void loop() {
        Hwater.publish(watered);
     } 
 
-
   Particle.publish("Moisture", String(moist),PRIVATE);
   Particle.publish("Temperature", String(temp),PRIVATE);
   Particle.publish("Plant Watered", String(watered),PRIVATE);
   
   createEventPayLoad(moist,temp,watered);
-
+    for(i=0;i<10;i++) {
       Adafruit_MQTT_Subscribe *subscription;
         while ((subscription = mqtt.readSubscription(10000))) {  // do this loop for 10 seconds
           if (subscription == &onoffbutton) {
             button = atoi((char *)onoffbutton.lastread);   //convert adafruit string to int
-            Serial.printf("Button State is %i",button);
-            digitalWrite(D7,button);
+            Serial.printf("Button State is %i \n",button);
+            if(button==1) {
+              digitalWrite(D7,1);
+              watered = waterPlant(3000);
+                  if(mqtt.Update()) {
+                    Htemp.publish(temp); 
+                    Hmoist.publish(moist);
+                    Hwater.publish(watered);
+                  } 
+              digitalWrite(D7,0);
+            }
           }
         }
+    }    
 }
 
 bool waterPlant(int moistVal) {
