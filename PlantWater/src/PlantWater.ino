@@ -35,9 +35,20 @@ Adafruit_MQTT_SPARK mqtt(&TheClient,AIO_SERVER,AIO_SERVERPORT,AIO_USERNAME,AIO_K
 Adafruit_MQTT_Publish Htemp = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Temperature");
 Adafruit_MQTT_Publish Hmoist = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Moisture");
 Adafruit_MQTT_Publish Hwater = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Water"); 
+Adafruit_MQTT_Publish Hpres = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Pressure"); 
+Adafruit_MQTT_Publish Hhum = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Humidity"); 
 
 Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/LED_On"); 
 
+/***************SetUp BME280*****************/
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+
+#define SEALEVELPRESSURE_HPA (1013.25)
+Adafruit_BME280 bme; // I2C
+
+/************Declare Variables*************/
 int soilPin = A2;
 int moist;
 int soilDelay = 60000;
@@ -46,9 +57,14 @@ int threshold = 2700;
 int pumpPin = D4;
 int waterTime = 1250;
 bool watered;
-
+//change this
 int tempPin = A3;
-int temp;
+double temp;
+double pres;
+double hum;
+double alt;
+
+unsigned status;
 
 char currentTime[25];
 char current[9];
@@ -76,14 +92,35 @@ void setup() {
 
     // Setup MQTT subscription for onoff feed.
   mqtt.subscribe(&onoffbutton);
+
+// Initialize BME280
+    Serial.println(F("BME280 test"));
+    
+    status = bme.begin(0x76);
+    if (!status)
+    {
+        Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
+        Serial.print("SensorID was: 0x");
+        Serial.println(bme.sensorID(), 16);
+        Serial.print("        ID of 0xFF probably means a bad address, a BMP 180 or BMP 085\n");
+        Serial.print("   ID of 0x56-0x58 represents a BMP 280,\n");
+        Serial.print("        ID of 0x60 represents a BME 280.\n");
+        Serial.print("        ID of 0x61 represents a BME 680.\n");
+        while (1)
+            ;
+    }
+
 }
 
 void loop() {
   moist = analogRead(soilPin);
   watered = waterPlant(moist);
 
-  temp = analogRead(tempPin);
+  temp = (bme.readTemperature()*(9.0/5.0))+32;
+  pres = bme.readPressure() / 100.0F;
+  hum = bme.readHumidity();
   printMoist(moist);
+  printValues();
 
     if(mqtt.Update()) {
        Htemp.publish(temp); 
@@ -95,7 +132,8 @@ void loop() {
   Particle.publish("Temperature", String(temp),PRIVATE);
   Particle.publish("Plant Watered", String(watered),PRIVATE);
   
-  createEventPayLoad(moist,temp,watered);
+  createEventPayLoad(moist,temp,pres,hum,watered);
+
     for(i=0;i<10;i++) {
       Adafruit_MQTT_Subscribe *subscription;
         while ((subscription = mqtt.readSubscription(10000))) {  // do this loop for 10 seconds
@@ -146,14 +184,38 @@ void printMoist(int moistVal) {
   Serial.printf("The time is %s \n",current);
 }
 
-void createEventPayLoad(int moistValue, int tempValue, bool waterED) {
+void createEventPayLoad(int moistValue, float tempValue, float presValue, float humValue, bool waterED) {
   JsonWriterStatic<256> jw;
   {
     JsonWriterAutoObject obj(&jw);
 
     jw.insertKeyValue("Moisture", moistValue);
     jw.insertKeyValue("Temperature", tempValue);
+    jw.insertKeyValue("Pressure", presValue);
+    jw.insertKeyValue("Humidity", humValue);
     jw.insertKeyValue("Plant Watered", waterED);
   }
   Particle.publish("env-vals",jw.getBuffer(), PRIVATE);
+}
+
+void printValues()
+{
+    Serial.print("Temperature = ");
+    Serial.print(bme.readTemperature());
+    Serial.println(" *C");
+
+    Serial.print("Pressure = ");
+
+    Serial.print(bme.readPressure() / 100.0F);
+    Serial.println(" hPa");
+
+    Serial.print("Approx. Altitude = ");
+    Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
+    Serial.println(" m");
+
+    Serial.print("Humidity = ");
+    Serial.print(bme.readHumidity());
+    Serial.println(" %");
+
+    Serial.println();
 }
