@@ -867,9 +867,9 @@ public:
    d44cc:	f44f 7280 	mov.w	r2, #256	; 0x100
    d44d0:	a912      	add	r1, sp, #72	; 0x48
    d44d2:	a806      	add	r0, sp, #24
-   d44d4:	eeb0 9a60 	vmov.f32	s18, s1
-   d44d8:	eef0 8a41 	vmov.f32	s17, s2
-   d44dc:	eeb0 8a40 	vmov.f32	s16, s0
+   d44d4:	eef0 8a60 	vmov.f32	s17, s1
+   d44d8:	eeb0 8a41 	vmov.f32	s16, s2
+   d44dc:	eeb0 9a40 	vmov.f32	s18, s0
    d44e0:	f000 fa60 	bl	d49a4 <_ZN10JsonWriterC1EPcj>
    d44e4:	4b29      	ldr	r3, [pc, #164]	; (d458c <_Z18createEventPayLoadifffb+0xcc>)
    d44e6:	9306      	str	r3, [sp, #24]
@@ -925,17 +925,17 @@ public:
     JsonWriterAutoObject obj(&jw);
 
     jw.insertKeyValue("Moisture", moistValue);
-    jw.insertKeyValue("Pressure", presValue);
+    jw.insertKeyValue("Temperature", tempValue);
    d4514:	eeb0 0a49 	vmov.f32	s0, s18
    d4518:	a806      	add	r0, sp, #24
    d451a:	491f      	ldr	r1, [pc, #124]	; (d4598 <_Z18createEventPayLoadifffb+0xd8>)
    d451c:	f7ff ffb4 	bl	d4488 <_ZN10JsonWriter14insertKeyValueIfEEvPKcT_>
-    jw.insertKeyValue("Humidity", humValue);
+    jw.insertKeyValue("Pressure", presValue);
    d4520:	eeb0 0a68 	vmov.f32	s0, s17
    d4524:	a806      	add	r0, sp, #24
    d4526:	491d      	ldr	r1, [pc, #116]	; (d459c <_Z18createEventPayLoadifffb+0xdc>)
    d4528:	f7ff ffae 	bl	d4488 <_ZN10JsonWriter14insertKeyValueIfEEvPKcT_>
-    jw.insertKeyValue("Temperature", tempValue);
+    jw.insertKeyValue("Humidity", humValue);
    d452c:	eeb0 0a48 	vmov.f32	s0, s16
    d4530:	491b      	ldr	r1, [pc, #108]	; (d45a0 <_Z18createEventPayLoadifffb+0xe0>)
    d4532:	a806      	add	r0, sp, #24
@@ -1005,8 +1005,8 @@ void createEventPayLoad(int moistValue, float tempValue, float presValue, float 
   JsonWriterStatic<256> jw;
    d457c:	a806      	add	r0, sp, #24
    d457e:	f7ff fda7 	bl	d40d0 <_ZN16JsonWriterStaticILj256EED1Ev>
+    jw.insertKeyValue("Pressure", presValue);
     jw.insertKeyValue("Humidity", humValue);
-    jw.insertKeyValue("Temperature", tempValue);
     jw.insertKeyValue("Plant Watered", waterED);
   }
   Particle.publish("env-vals",jw.getBuffer(), PRIVATE);
@@ -1018,9 +1018,9 @@ void createEventPayLoad(int moistValue, float tempValue, float presValue, float 
    d458c:	000db518 	.word	0x000db518
    d4590:	000db795 	.word	0x000db795
    d4594:	000dbd9c 	.word	0x000dbd9c
-   d4598:	000db7c8 	.word	0x000db7c8
-   d459c:	000db7e3 	.word	0x000db7e3
-   d45a0:	000db777 	.word	0x000db777
+   d4598:	000db777 	.word	0x000db777
+   d459c:	000db7c8 	.word	0x000db7c8
+   d45a0:	000db7e3 	.word	0x000db7e3
    d45a4:	000db520 	.word	0x000db520
    d45a8:	2003e2f0 	.word	0x2003e2f0
    d45ac:	000db70f 	.word	0x000db70f
