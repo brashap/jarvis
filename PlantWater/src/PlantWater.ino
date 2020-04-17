@@ -53,10 +53,10 @@ int soilPin = A2;
 int moist;
 int soilDelay = 60000;
 
-int threshold = 2700;
+int threshold = 2425;
 int pumpPin = D4;
 int waterTime = 1250;
-bool watered;
+int watered;
 //change this
 int tempPin = A3;
 double temp;
@@ -134,8 +134,9 @@ void loop() {
   
   createEventPayLoad(moist,temp,pres,hum,watered);
 
-    for(i=0;i<10;i++) {
+    for(i=0;i<60;i++) {
       Adafruit_MQTT_Subscribe *subscription;
+      Serial.printf("x%i ",i);
         while ((subscription = mqtt.readSubscription(10000))) {  // do this loop for 10 seconds
           if (subscription == &onoffbutton) {
             button = atoi((char *)onoffbutton.lastread);   //convert adafruit string to int
@@ -155,19 +156,19 @@ void loop() {
     }    
 }
 
-bool waterPlant(int moistVal) {
+int waterPlant(int moistVal) {
   if(moistVal > threshold) {
     Serial.printlnf("The %i > %i, turning on pump", moist, threshold);
     delay(1000);
     digitalWrite(pumpPin,HIGH);
     delay(waterTime);
     digitalWrite(pumpPin,LOW);
-    return true;
+    return 1;
   }
   else
   {
     Serial.printlnf("The %i < %i no water needed", moist, threshold);
-    return false;
+    return 0;
   }
     
 }
@@ -184,7 +185,7 @@ void printMoist(int moistVal) {
   Serial.printf("The time is %s \n",current);
 }
 
-void createEventPayLoad(int moistValue, float tempValue, float presValue, float humValue, bool waterED) {
+void createEventPayLoad(int moistValue, float tempValue, float presValue, float humValue, int waterED) {
   JsonWriterStatic<256> jw;
   {
     JsonWriterAutoObject obj(&jw);
