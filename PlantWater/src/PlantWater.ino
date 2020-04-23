@@ -115,7 +115,6 @@ void setup() {
 void loop() {
   moist = analogRead(soilPin);
   watered = waterPlant(moist);
-
   temp = (bme.readTemperature()*(9.0/5.0))+32;
   pres = (bme.readPressure() / 100.0F * 0.02953)+5;
   hum = bme.readHumidity();

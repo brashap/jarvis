@@ -3,7 +3,7 @@
 /******************************************************/
 
 #include "Particle.h"
-#line 1 "c:/Users/iotpa/Documents/jarvis/PlantWater/src/PlantWater.ino"
+#line 1 "c:/Users/IoTPa/Documents/jarvis/PlantWater/src/PlantWater.ino"
 /*
  * Project PlantWater
  * Description:
@@ -27,7 +27,7 @@ int waterPlant(int moistVal);
 void printMoist(int moistVal);
 void createEventPayLoad(int moistValue, float tempValue, float presValue, float humValue, int waterED);
 void printValues();
-#line 18 "c:/Users/iotpa/Documents/jarvis/PlantWater/src/PlantWater.ino"
+#line 18 "c:/Users/IoTPa/Documents/jarvis/PlantWater/src/PlantWater.ino"
 #define AIO_SERVER      "io.adafruit.com" 
 #define AIO_SERVERPORT  1883                   // use 8883 for SSL 
 #define AIO_USERNAME  "rashap"
@@ -128,7 +128,6 @@ void setup() {
 void loop() {
   moist = analogRead(soilPin);
   watered = waterPlant(moist);
-
   temp = (bme.readTemperature()*(9.0/5.0))+32;
   pres = (bme.readPressure() / 100.0F * 0.02953)+5;
   hum = bme.readHumidity();
