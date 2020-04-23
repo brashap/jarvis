@@ -1,0 +1,30 @@
+*Pick And Place List
+*Company=
+*Author=
+*eMail=
+*
+*Project=Simon
+*Date=09:43:29
+*CreatedBy=Fritzing 0.9.4.2019-12-01.CD-498-0-a1ffcea
+*
+*
+*Coordinates in mm, always center of component
+*Origin 0/0=Lower left corner of PCB
+*Rotation in degree (0-360, math. pos.)
+*
+*No;Value;Package;X;Y;Rotation;Side;Name
+1;;5 mm [THT];26.5287;-6.61764;0;Bottom;LED4
+2;;;42.8114;-28.7866;0;Bottom;Argon1
+3;;[THT];10.5788;-8.17681;0;Bottom;S4
+4;;[THT];74.0787;-8.17681;0;Bottom;S3
+5;;;53.9495;-25.0501;0;Bottom;Via2
+6;220;2010 [SMD];8.74889;-16.4266;-90;Top;R4
+7;220;2010 [SMD];74.7889;-16.4266;-90;Top;R3
+8;;5 mm [THT];59.549;-47.2576;0;Bottom;LED2
+9;;;34.4423;-16.5157;0;Bottom;Via1
+10;;[THT];74.0787;-48.8168;0;Bottom;S2
+11;;5 mm [THT];59.549;-6.61764;0;Bottom;LED3
+12;;[THT];10.5788;-48.8168;0;Bottom;S1
+13;220;2010 [SMD];8.7489;-39.2866;90;Top;R1
+14;;5 mm [THT];26.5287;-47.2576;0;Bottom;LED1
+15;220;2010 [SMD];74.789;-39.2866;90;Top;R2
