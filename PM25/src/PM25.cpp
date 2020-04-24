@@ -18,15 +18,19 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME680.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_GFX.h>
 
 HM330XErrorCode print_result(const char* str, uint16_t value);
 HM330XErrorCode parse_result(uint8_t* data);
 HM330XErrorCode parse_result_value(uint8_t* data);
 void setup();
 void loop();
-void createEventPayLoad(float tempValue, float presValue, float humValue, int PM25Value);
+void createEventPayLoad(float tempValue, float presValue, float humValue, float gasValue, int PM25Value);
 void printValues();
-#line 16 "c:/Users/IoTPa/Documents/jarvis/PM25/src/PM25.ino"
+void printData();
+void printhello();
+#line 18 "c:/Users/IoTPa/Documents/jarvis/PM25/src/PM25.ino"
 #define SEALEVELPRESSURE_HPA 1013.25
 Adafruit_BME680 bme; // I2C
 
@@ -49,6 +53,12 @@ const char* str[] = {"sensor num: ", "PM1.0 concentration(CF=1,Standard particul
                      "PM2.5 concentration(Atmospheric environment,unit:ug/m3): ",
                      "PM10 concentration(Atmospheric environment,unit:ug/m3): ",
                     };
+
+// Define OLED Display
+#define OLED_ADDR   0x3C
+Adafruit_SSD1306 display(-1);  // the -1 means there is no reset pin
+#define SSD1306_128_64     // 128x64 pixel display
+
 
 HM330XErrorCode print_result(const char* str, uint16_t value) {
     if (NULL == str) {
@@ -101,12 +111,14 @@ double temp;
 double pres;
 double hum;
 double alt;
+double gas;
 unsigned int status;
 
 int delayStart;
 
 void setup() {
   Serial.begin(9600);
+  while(!Serial);
 
 // Initialize BME280
     Serial.println(F("BME280 test"));
@@ -129,43 +141,52 @@ void setup() {
     bme.setPressureOversampling(BME680_OS_4X);
     bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
     bme.setGasHeater(320, 150); // 320*C for 150 ms
+
+    // initialize and clear display
+    display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR);
+    display.clearDisplay();
+    display.display();
+
+  printhello();
 }
 
 void loop() {
+temp = (bme.readTemperature()*(9.0/5.0))+32;
+pres = (bme.readPressure() / 100.0F * 0.02953)+5;
+hum = bme.readHumidity();
+gas = bme.readGas() / 1000.0;
+printValues();
 
-  temp = (bme.readTemperature()*(9.0/5.0))+32;
-  pres = (bme.readPressure() / 100.0F * 0.02953)+5;
-  hum = bme.readHumidity();
-  printValues();
-
-  if (sensor.read_sensor_value(buf, 29)) {
-        SERIAL_OUTPUT.println("HM330X read result failed!!!");
+if (sensor.read_sensor_value(buf, 29)) {
+    Serial.println("HM330X read result failed!!!");
     }
-    Serial.println("Starting Display");
-    parse_result_value(buf);
-    Serial.println("Printing Concentrations");
-    parse_result(buf);
-    Serial.println("PM2.5 Data");
-    PM25 = (uint16_t) buf[6 * 2] << 8 | buf[6 * 2 + 1];
-        print_result(str[6 - 1], PM25);
-    SERIAL_OUTPUT.println("");
-    delay(60000);
+Serial.println("Starting Display");
+parse_result_value(buf);
+Serial.println("Printing Concentrations");
+parse_result(buf);
+Serial.println("PM2.5 Data");
+PM25 = (uint16_t) buf[6 * 2] << 8 | buf[6 * 2 + 1];
+print_result(str[6 - 1], PM25);
+Serial.println("");
+
   
-  createEventPayLoad(temp,pres,hum,PM25);
-    
+createEventPayLoad(temp,pres,hum,gas,PM25);
+printData();
+delay(60000);    
 }
 
-void createEventPayLoad(float tempValue, float presValue, float humValue, int PM25Value) {
+void createEventPayLoad(float tempValue, float presValue, float humValue, float gasValue, int PM25Value) {
   JsonWriterStatic<256> jw;
   {
     JsonWriterAutoObject obj(&jw);
 
-    jw.insertKeyValue("Temperature", tempValue);
-    jw.insertKeyValue("Pressure", presValue);
-    jw.insertKeyValue("Humidity", humValue);
-    jw.insertKeyValue("PM25", PM25Value);
+    jw.insertKeyValue("Home_Temp", tempValue);
+    jw.insertKeyValue("Home_Pres", presValue);
+    jw.insertKeyValue("Home_Humid", humValue);
+    jw.insertKeyValue("Home_Gas", gasValue);
+    jw.insertKeyValue("Home_PM25", PM25Value);
   }
-  Particle.publish("env-vals",jw.getBuffer(), PRIVATE);
+  Particle.publish("bme-vals",jw.getBuffer(), PRIVATE);
 }
 
 void printValues()
@@ -190,3 +211,45 @@ void printValues()
     Serial.println();
 }
 
+void printData() {
+
+ 
+
+    display.clearDisplay();
+    display.display();
+
+     // display a pixel in each corner of the screen
+    display.drawPixel(0, 0, WHITE);
+    display.drawPixel(127, 0, WHITE);
+    display.drawPixel(0, 63, WHITE);
+    display.drawPixel(127, 63, WHITE);
+
+    display.setCursor(0,5);
+    display.printf("Temperature: %0.2f F\n",temp);
+    display.printf("Pressure: %0.2f inHg\n",pres);
+    display.printf("Humidity: %0.2f rH\n", hum);
+    display.printf("Gas Conc: %0.2f\n",gas);
+    display.printf("PM25: %i \n", PM25);
+
+    display.display();
+}
+
+void printhello() {
+  display.clearDisplay();
+  display.display();
+
+  // display a pixel in each corner of the screen
+  display.drawPixel(0, 0, WHITE);
+  display.drawPixel(127, 0, WHITE);
+  display.drawPixel(0, 63, WHITE);
+  display.drawPixel(127, 63, WHITE);
+
+  // display a line of text
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(27,30);
+  display.print("Hello, world!");
+
+  // update display with all of the above graphics
+  display.display();
+}
