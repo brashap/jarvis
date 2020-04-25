@@ -64,6 +64,8 @@ double pres;
 double hum;
 double alt;
 
+float dust;
+
 unsigned status;
 
 char currentTime[25];
@@ -118,6 +120,8 @@ void loop() {
   temp = (bme.readTemperature()*(9.0/5.0))+32;
   pres = (bme.readPressure() / 100.0F * 0.02953)+5;
   hum = bme.readHumidity();
+  dust = getDust();
+  Serial.printf("Dust Value = %0.2f \n",dust);
   printMoist(moist);
   printValues();
 
@@ -218,4 +222,37 @@ void printValues()
     Serial.println(" %");
 
     Serial.println();
+}
+
+float getDust() {
+  
+  int pinDust = 8;
+  unsigned long duration;
+  unsigned long starttime;
+  unsigned long sampletime_ms = 30000;//sampe 30s ;
+  unsigned long lowpulseoccupancy = 0;
+  float ratio = 0;
+  float concentration = -1;
+
+  pinMode(pinDust,INPUT);
+  starttime = millis();//get the current time;
+
+  while(concentration == -1) {
+    duration = pulseIn(pinDust, LOW);
+    lowpulseoccupancy = lowpulseoccupancy+duration;
+
+    if ((millis()-starttime) > sampletime_ms)//if the sampel time == 30s
+    {
+        ratio = lowpulseoccupancy/(sampletime_ms*10.0);  // Integer percentage 0=>100
+        concentration = 1.1*pow(ratio,3)-3.8*pow(ratio,2)+520*ratio+0.62; // using spec sheet curve
+        Serial.print(lowpulseoccupancy);
+        Serial.print(",");
+        Serial.print(ratio);
+        Serial.print(",");
+        Serial.println(concentration);
+        lowpulseoccupancy = 0;
+        starttime = millis();
+    }
+  }
+return concentration;
 }
