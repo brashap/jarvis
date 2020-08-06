@@ -4,10 +4,36 @@
  * Author:
  * Date:
  */
-//#include <Particle.h>
-#include <JsonParserGeneratorRK.h>
 
+#include <JsonParserGeneratorRK.h>
 #include <Adafruit_MQTT.h>
+#include "Adafruit_GFX.h"
+#include "Adafruit_SSD1306.h"
+
+// Setup OLED Display
+#define OLED_ADDR   0x3C
+Adafruit_SSD1306 display(-1);
+#if (SSD1306_LCDHEIGHT != 64)
+#error("Height incorrect, please fix Adafruit_SSD1306.h!");
+#endif
+
+/*=========================================================================
+    SSD1306 Displays
+    -----------------------------------------------------------------------
+    The driver is used in multiple displays (128x64, 128x32, etc.).
+    Select the appropriate display below to create an appropriately
+    sized framebuffer, etc.
+
+    SSD1306_128_64  128x64 pixel display
+
+    SSD1306_128_32  128x32 pixel display
+
+    SSD1306_96_16
+
+    -----------------------------------------------------------------------*/
+   #define SSD1306_128_64
+//   #define SSD1306_128_32
+//   #define SSD1306_96_16
 
 // This #include statement was automatically added by the Particle IDE. 
 #include "Adafruit_MQTT/Adafruit_MQTT.h" 
@@ -37,6 +63,7 @@ Adafruit_MQTT_Publish Hmoist = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds
 Adafruit_MQTT_Publish Hwater = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Water"); 
 Adafruit_MQTT_Publish Hpres = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Pressure"); 
 Adafruit_MQTT_Publish Hhum = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Humidity"); 
+Adafruit_MQTT_Publish Hdust = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Dust"); 
 
 Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/LED_On"); 
 
@@ -54,15 +81,15 @@ int moist;
 int soilDelay = 60000;
 
 int threshold = 2425;
-int pumpPin = D4;
-int waterTime = 1250;
+int pumpPin = D4; 
+int waterTime = 500;
 int watered;
 //change this
 int tempPin = A3;
 double temp;
 double pres;
 double hum;
-double alt;
+double alt; 
 
 float dust;
 
@@ -112,6 +139,13 @@ void setup() {
             ;
     }
 
+  // initialize and clear display
+  display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR);
+  display.clearDisplay();
+  display.display();
+
+  printhello();
+
 }
 
 void loop() {
@@ -127,9 +161,14 @@ void loop() {
 
     if(mqtt.Update()) {
        Htemp.publish(temp); 
+       Hpres.publish(pres);
+       Hhum.publish(hum);
        Hmoist.publish(moist);
        Hwater.publish(watered);
+       Hdust.publish(dust);
     } 
+
+    oledprint(temp, pres, hum, dust, moist);
 
   Particle.publish("Moisture", String(moist),PRIVATE);
   Particle.publish("Temperature", String(temp),PRIVATE);
@@ -255,4 +294,45 @@ float getDust() {
     }
   }
 return concentration;
+}
+
+void oledprint(float Otemp, float Opres, float Ohum, float Odust, int Omoist) {
+
+   // initialize and clear display
+  display.clearDisplay();
+  display.display();
+
+  // display a pixel in each corner of the screen
+  display.drawPixel(0, 0, WHITE);
+  display.drawPixel(127, 0, WHITE);
+  display.drawPixel(0, 63, WHITE);
+  display.drawPixel(127, 63, WHITE);
+
+  // display a line of text
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0,5);
+  display.printf("Environmental Reading");
+  display.setCursor(0,18);
+  display.printf("Temperature(F) %0.2f\n",Otemp);
+  display.printf("Pressure (hPa) %0.2f\n",Opres);
+  display.printf("Humidity (%rH)  %0.2f\n",Ohum);
+  display.printf("Dust Level: %0.2f \n",Odust);
+  display.printf("Moisture: %d \n",Omoist);
+  display.display();
+}
+
+void printhello() {
+  display.clearDisplay();
+  // display a pixel in each corner of the screen
+  display.drawPixel(0, 0, WHITE);
+  display.drawPixel(127, 0, WHITE);
+  display.drawPixel(0, 63, WHITE);
+  display.drawPixel(127, 63, WHITE);
+  // display a line of text
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(27,30);
+  display.print("Hello, world!");
+  display.display();
 }
