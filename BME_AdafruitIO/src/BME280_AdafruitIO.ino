@@ -31,7 +31,7 @@ Adafruit_MQTT_SPARK mqtt(&TheClient,AIO_SERVER,AIO_SERVERPORT,AIO_USERNAME,AIO_K
 // Setup a feed called 'voltage' for publishing. 
 // Notice MQTT paths for AIO follow the form: <username>/feeds/<feedname> 
 
-Adafruit_MQTT_Publish temp = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Temperature");
+Adafruit_MQTT_Publish temp = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Temperature");
 Adafruit_MQTT_Publish press = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Pressure");
 Adafruit_MQTT_Publish rh = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Relative_Humidity"); 
 

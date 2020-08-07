@@ -6,6 +6,6 @@
         "*.ino": "cpp"
     },
     "particle.targetPlatform": "argon",
-    "particle.targetDevice": "Doctorow",
-    "particle.firmwareVersion": "1.1.0"
+    "particle.targetDevice": "",
+    "particle.firmwareVersion": "1.5.2"
 }

@@ -109,6 +109,13 @@ int delayStart;
 
 void setup() {
   Serial.begin(9600);
+
+    // initialize and clear display
+  display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR);
+  display.clearDisplay();
+  display.display();
+  printhello();
+  
   pinMode(soilPin,INPUT);
   pinMode(pumpPin,OUTPUT);
   pinMode(D7,OUTPUT);
@@ -138,13 +145,6 @@ void setup() {
         while (1)
             ;
     }
-
-  // initialize and clear display
-  display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR);
-  display.clearDisplay();
-  display.display();
-
-  printhello();
 
 }
 

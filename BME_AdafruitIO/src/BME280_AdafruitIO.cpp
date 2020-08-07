@@ -2,7 +2,7 @@
 //       THIS IS A GENERATED FILE - DO NOT EDIT       //
 /******************************************************/
 
-#line 1 "/home/brian/Particle/BME_AdafruitIO/src/BME280_AdafruitIO.ino"
+#line 1 "c:/Users/IoTPa/Documents/jarvis/BME_AdafruitIO/src/BME280_AdafruitIO.ino"
 /*
  * Project BME280_AdafruitIO
  * Description: Trial Script to send Accelerometer Data to Adafruit IO cloud
@@ -36,7 +36,7 @@ Adafruit_MQTT_SPARK mqtt(&TheClient,AIO_SERVER,AIO_SERVERPORT,AIO_USERNAME,AIO_K
 // Setup a feed called 'voltage' for publishing. 
 // Notice MQTT paths for AIO follow the form: <username>/feeds/<feedname> 
 
-Adafruit_MQTT_Publish temp = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Temperature");
+Adafruit_MQTT_Publish temp = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Home_Temperature");
 Adafruit_MQTT_Publish press = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Pressure");
 Adafruit_MQTT_Publish rh = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Relative_Humidity"); 
 
@@ -46,7 +46,7 @@ void setup();
 void loop();
 void I2CScan();
 void printValues();
-#line 40 "/home/brian/Particle/BME_AdafruitIO/src/BME280_AdafruitIO.ino"
+#line 40 "c:/Users/IoTPa/Documents/jarvis/BME_AdafruitIO/src/BME280_AdafruitIO.ino"
 #include "Adafruit_Sensor.h"
 #include "Adafruit_BME280.h"
 
