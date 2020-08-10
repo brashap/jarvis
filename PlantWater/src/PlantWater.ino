@@ -10,32 +10,12 @@
 #include "Adafruit_GFX.h"
 #include "Adafruit_SSD1306.h"
 
-// Setup OLED Display
+// Setup SSD_1306 Display
 #define OLED_ADDR   0x3C
+#define SSD1306_128_64
 Adafruit_SSD1306 display(-1);
-#if (SSD1306_LCDHEIGHT != 64)
-#error("Height incorrect, please fix Adafruit_SSD1306.h!");
-#endif
 
-/*=========================================================================
-    SSD1306 Displays
-    -----------------------------------------------------------------------
-    The driver is used in multiple displays (128x64, 128x32, etc.).
-    Select the appropriate display below to create an appropriately
-    sized framebuffer, etc.
-
-    SSD1306_128_64  128x64 pixel display
-
-    SSD1306_128_32  128x32 pixel display
-
-    SSD1306_96_16
-
-    -----------------------------------------------------------------------*/
-   #define SSD1306_128_64
-//   #define SSD1306_128_32
-//   #define SSD1306_96_16
-
-// This #include statement was automatically added by the Particle IDE. 
+// THese #include statement is for MQTT
 #include "Adafruit_MQTT/Adafruit_MQTT.h" 
 #include "Adafruit_MQTT/Adafruit_MQTT_SPARK.h" 
 #include "Adafruit_MQTT/Adafruit_MQTT.h" 
@@ -110,7 +90,7 @@ int delayStart;
 void setup() {
   Serial.begin(9600);
 
-    // initialize and clear display
+  // initialize and clear display
   display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR);
   display.clearDisplay();
   display.display();
@@ -122,88 +102,81 @@ void setup() {
   digitalWrite(pumpPin,LOW);
   Time.zone(-6); // set timezone to MDT
   Particle.syncTime(); 
-  Particle.variable("Moisture", moist);
-  Particle.variable("Temperature", temp);
-  Particle.variable("Plant Watered", watered);
 
-    // Setup MQTT subscription for onoff feed.
+  // Setup MQTT subscription for onoff feed.
   mqtt.subscribe(&onoffbutton);
 
-// Initialize BME280
-    Serial.println(F("BME280 test"));
-    
-    status = bme.begin(0x76);
-    if (!status)
-    {
-        Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
-        Serial.print("SensorID was: 0x");
-        Serial.println(bme.sensorID(), 16);
-        Serial.print("        ID of 0xFF probably means a bad address, a BMP 180 or BMP 085\n");
-        Serial.print("   ID of 0x56-0x58 represents a BMP 280,\n");
-        Serial.print("        ID of 0x60 represents a BME 280.\n");
-        Serial.print("        ID of 0x61 represents a BME 680.\n");
-        while (1)
-            ;
-    }
+  // Initialize BME280
+  Serial.println(F("BME280 test"));
+  status = bme.begin(0x76);
+  if (!status)
+  {
+    Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
+    Serial.print("SensorID was: 0x");
+    Serial.println(bme.sensorID(), 16);
+    Serial.print("        ID of 0xFF probably means a bad address, a BMP 180 or BMP 085\n");
+    Serial.print("   ID of 0x56-0x58 represents a BMP 280,\n");
+    Serial.print("        ID of 0x60 represents a BME 280.\n");
+    Serial.print("        ID of 0x61 represents a BME 680.\n");
+    while (1);
+  }
 
 }
 
 void loop() {
   moist = analogRead(soilPin);
-  watered = waterPlant(moist);
+  watered = waterPlant(moist,waterTime);
   temp = (bme.readTemperature()*(9.0/5.0))+32;
   pres = (bme.readPressure() / 100.0F * 0.02953)+5;
   hum = bme.readHumidity();
   dust = getDust();
-  Serial.printf("Dust Value = %0.2f \n",dust);
   printMoist(moist);
   printValues();
 
-    if(mqtt.Update()) {
-       Htemp.publish(temp); 
-       Hpres.publish(pres);
-       Hhum.publish(hum);
-       Hmoist.publish(moist);
-       Hwater.publish(watered);
-       Hdust.publish(dust);
-    } 
+  //Publish to Adafruit.io
+  if(mqtt.Update()) {
+    Htemp.publish(temp); 
+    Hpres.publish(pres);
+    Hhum.publish(hum);
+    Hmoist.publish(moist);
+    Hwater.publish(watered);
+    Hdust.publish(dust);
+  } 
 
-    oledprint(temp, pres, hum, dust, moist);
-
-  Particle.publish("Moisture", String(moist),PRIVATE);
-  Particle.publish("Temperature", String(temp),PRIVATE);
-  Particle.publish("Plant Watered", String(watered),PRIVATE);
+  oledprint(temp, pres, hum, dust, moist);
   
+  //Publish to Particle Cloud in JSON
   createEventPayLoad(moist,temp,pres,hum,watered);
 
-    for(i=0;i<60;i++) {
-      Adafruit_MQTT_Subscribe *subscription;
-      Serial.printf("x%i ",i);
-        while ((subscription = mqtt.readSubscription(10000))) {  // do this loop for 10 seconds
-          if (subscription == &onoffbutton) {
-            button = atoi((char *)onoffbutton.lastread);   //convert adafruit string to int
-            Serial.printf("Button State is %i \n",button);
-            if(button==1) {
-              digitalWrite(D7,1);
-              watered = waterPlant(3000);
-                  if(mqtt.Update()) {
-                    Htemp.publish(temp); 
-                    Hmoist.publish(moist);
-                    Hwater.publish(watered);
-                  } 
-              digitalWrite(D7,0);
-            }
-          }
+  // Look for manual water, 
+  for(i=0;i<60;i++) {
+    Adafruit_MQTT_Subscribe *subscription;
+    Serial.printf("x%i ",i);
+    while ((subscription = mqtt.readSubscription(10000))) {  // do this loop for 10 seconds
+      if (subscription == &onoffbutton) {
+        button = atoi((char *)onoffbutton.lastread);   //convert adafruit string to int
+        Serial.printf("Button State is %i \n",button);
+        if(button==1) {
+          digitalWrite(D7,1);
+          watered = waterPlant(3000,waterTime);
+          if(mqtt.Update()) {
+            Hmoist.publish(moist);
+            Hwater.publish(watered);  
+          } 
+          digitalWrite(D7,0);
         }
-    }    
+      }
+    }
+  }    
 }
 
-int waterPlant(int moistVal) {
+// Check moistVal and water plan for timeWater (ms) if necessary
+int waterPlant(int moistVal, int timeWater) {
   if(moistVal > threshold) {
     Serial.printlnf("The %i > %i, turning on pump", moist, threshold);
     delay(1000);
     digitalWrite(pumpPin,HIGH);
-    delay(waterTime);
+    delay(timeWater);
     digitalWrite(pumpPin,LOW);
     return 1;
   }
@@ -243,28 +216,14 @@ void createEventPayLoad(int moistValue, float tempValue, float presValue, float 
 
 void printValues()
 {
-    Serial.print("Temperature = ");
-    Serial.print(bme.readTemperature());
-    Serial.println(" *C");
-
-    Serial.print("Pressure = ");
-
-    Serial.print(bme.readPressure() / 100.0F);
-    Serial.println(" hPa");
-
-    Serial.print("Approx. Altitude = ");
-    Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
-    Serial.println(" m");
-
-    Serial.print("Humidity = ");
-    Serial.print(bme.readHumidity());
-    Serial.println(" %");
-
-    Serial.println();
+  Serial.printf("Temperature Value = %0.2f \n",temp);
+  Serial.printf("Pressure Value = %0.2f \n",pres);
+  Serial.printf("Humidity Value = %0.2f \n",hum);
+  Serial.printf("Soil Moisture Value = %d \n",moist);
+  Serial.printf("Dust Value = %0.2f \n",dust);
 }
 
 float getDust() {
-  
   int pinDust = 8;
   unsigned long duration;
   unsigned long starttime;
