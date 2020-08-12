@@ -10,7 +10,7 @@
  * Author:
  * Date:
  */
-
+#include "Credentials.h"
 #include <JsonParserGeneratorRK.h>
 #include <Adafruit_MQTT.h>
 #include "Adafruit_GFX.h"
@@ -36,11 +36,7 @@ Adafruit_SSD1306 display(-1);
 #include "Adafruit_MQTT/Adafruit_MQTT_SPARK.h" 
 #include "Adafruit_MQTT/Adafruit_MQTT.h" 
 
-/************************* Adafruit.io Setup *********************************/ 
-#define AIO_SERVER      "io.adafruit.com" 
-#define AIO_SERVERPORT  1883                   // use 8883 for SSL 
-#define AIO_USERNAME  "rashap"
-#define AIO_KEY       "598169fa3ba94636941a330976e42e2c"
+
 
 
 /************ Global State (you don't need to change this!) ***   ***************/ 

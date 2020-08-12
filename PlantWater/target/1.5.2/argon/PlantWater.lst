@@ -21,23 +21,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   8 .module_info_crc 00000004  000dd840  000dd840  0002d840  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  9 .debug_info   00121ae3  00000000  00000000  0002d844  2**0
+  9 .debug_info   00121add  00000000  00000000  0002d844  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_abbrev 00017153  00000000  00000000  0014f327  2**0
+ 10 .debug_abbrev 00017153  00000000  00000000  0014f321  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    0002a7f1  00000000  00000000  0016647a  2**0
+ 11 .debug_loc    0002a7f1  00000000  00000000  00166474  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_aranges 000031a8  00000000  00000000  00190c6b  2**0
+ 12 .debug_aranges 000031a8  00000000  00000000  00190c65  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_ranges 00005c80  00000000  00000000  00193e13  2**0
+ 13 .debug_ranges 00005c80  00000000  00000000  00193e0d  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_macro  0003ee6f  00000000  00000000  00199a93  2**0
+ 14 .debug_macro  0003ee7d  00000000  00000000  00199a8d  2**0
                   CONTENTS, READONLY, DEBUGGING
- 15 .debug_line   00039a7c  00000000  00000000  001d8902  2**0
+ 15 .debug_line   00039a8d  00000000  00000000  001d890a  2**0
                   CONTENTS, READONLY, DEBUGGING
- 16 .debug_str    00111db0  00000000  00000000  0021237e  2**0
+ 16 .debug_str    00111db0  00000000  00000000  00212397  2**0
                   CONTENTS, READONLY, DEBUGGING
- 17 .debug_frame  0000fb74  00000000  00000000  00324130  2**2
+ 17 .debug_frame  0000fb74  00000000  00000000  00324148  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -1772,8 +1772,8 @@ inline particle::Flag<TagT, ValueT>::Flag(ValueT val) :
 Adafruit_SSD1306 display(-1);
    d4a88:	4c39      	ldr	r4, [pc, #228]	; (d4b70 <_GLOBAL__sub_I_display+0xec>)
    d4a8a:	4d3a      	ldr	r5, [pc, #232]	; (d4b74 <_GLOBAL__sub_I_display+0xf0>)
-#define AIO_USERNAME  "rashap"
-#define AIO_KEY       "598169fa3ba94636941a330976e42e2c"
+
+
 
 
 /************ Global State (you don't need to change this!) ***   ***************/ 
@@ -1808,8 +1808,8 @@ Adafruit_SSD1306 display(-1);
    d4aa4:	4936      	ldr	r1, [pc, #216]	; (d4b80 <_GLOBAL__sub_I_display+0xfc>)
    d4aa6:	4620      	mov	r0, r4
    d4aa8:	f004 fa64 	bl	d8f74 <__aeabi_atexit>
-#define AIO_USERNAME  "rashap"
-#define AIO_KEY       "598169fa3ba94636941a330976e42e2c"
+
+
 
 
 /************ Global State (you don't need to change this!) ***   ***************/ 
