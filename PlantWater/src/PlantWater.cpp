@@ -72,7 +72,7 @@ int soilPin = A2;
 int moist;
 int soilDelay = 60000;
 
-int threshold = 2425;
+int threshold = 2600;
 int pumpPin = D4; 
 int waterTime = 500;
 int watered;
@@ -194,7 +194,7 @@ int waterPlant(int moistVal, int timeWater) {
   }
   else
   {
-    Serial.printlnf("The %i < %i no water needed", moist, threshold);
+    Serial.printlnf("\n \n The %i < %i no water needed", moist, threshold);
     return 0;
   }
     
