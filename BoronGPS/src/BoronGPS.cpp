@@ -73,7 +73,6 @@ void loop()
 			displayInfo();
 		}
 	}
- 
 }
 
 void displayInfo() {
@@ -129,11 +128,12 @@ void displayInfo() {
 
 void helloWorld() {
 	display.clearDisplay();
-	display.setTextSize(1);
+	display.setTextSize(2);
   	display.setTextColor(WHITE);
   	display.setCursor(20,5);
-  	display.println("GPS Initializing");
+  	display.println("  GPS\n Starting");
 	display.display();
+	display.setTextSize(1);
 }
 
 void sendJSON(float jlat, float jlon, float jalt) {

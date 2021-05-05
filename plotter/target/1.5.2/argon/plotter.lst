@@ -215,7 +215,7 @@ class Adafruit_SSD1306 : public Adafruit_GFX {
 	...
 
 000d40cc <setup>:
-const unsigned int plotPeriod = 5; //x-axis steps in ms
+const unsigned int plotPeriod = 2; //x-axis steps in ms
 float data;
 unsigned int currentTime;
 unsigned int lastTime;
@@ -376,7 +376,7 @@ void loop() {
    d4164:	6020      	str	r0, [r4, #0]
   if((currentTime-lastTime)>plotPeriod) {
    d4166:	1a83      	subs	r3, r0, r2
-   d4168:	2b05      	cmp	r3, #5
+   d4168:	2b02      	cmp	r3, #2
    d416a:	d93c      	bls.n	d41e6 <loop+0x8e>
     data = amp*sin(2*M_PI*freq*(currentTime/1000.0))+offset;
    d416c:	f003 fb42 	bl	d77f4 <__aeabi_ui2d>

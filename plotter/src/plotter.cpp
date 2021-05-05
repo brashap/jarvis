@@ -29,7 +29,7 @@ const int yMin = 0;
 const float freq = .1;
 const int amp = 40;
 const int offset = 50;
-const unsigned int plotPeriod = 5; //x-axis steps in ms
+const unsigned int plotPeriod = 2; //x-axis steps in ms
 float data;
 unsigned int currentTime;
 unsigned int lastTime;
